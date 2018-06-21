@@ -9,16 +9,20 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-
 import br.com.caelum.garbage.models.Transacao;
+import br.com.caelum.garbage.services.TransacoesReader;
 
 @Controller
 @RequestMapping("/transacoes")
 public class TransacoesController {
 
 	private static final String PAGINA_TRANSACOES = "transacoes";
+	
+	private final TransacoesReader reader;
+	
+	public TransacoesController(TransacoesReader reader) {
+		this.reader = reader;
+	}
 
 	@GetMapping
 	public String form() {
@@ -27,10 +31,7 @@ public class TransacoesController {
 	
 	@PostMapping
 	public String upload(MultipartFile arquivo, Model model) throws Exception {
-		XStream xs = new XStream(new DomDriver());
-		xs.alias("transacao", Transacao.class);
-
-		List<Transacao> transacoes = (List<Transacao>) xs.fromXML(arquivo.getInputStream());
+		List<Transacao> transacoes = reader.readFrom(arquivo.getInputStream());
 		model.addAttribute("qtdTransacoes", transacoes.size());
 		
 		return PAGINA_TRANSACOES;
